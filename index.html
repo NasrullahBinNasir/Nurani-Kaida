@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <script>try{var _t=localStorage.getItem("lodTheme");if(_t&&_t!=="auto")document.documentElement.setAttribute("data-theme",_t);}catch(e){}</script>
 <meta name="theme-color" content="#1e88e5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Light of Deen – ঈমানের আলোয় আলোকিত জীবন</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -8437,6 +8440,13 @@ function loadFatiha(){
     f.srcdoc=new TextDecoder("utf-8").decode(u);
     f.dataset.ready="1";
   }catch(e){console.error(e)}
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
 }
 </script>
 </body>
