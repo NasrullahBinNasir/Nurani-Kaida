@@ -665,7 +665,22 @@ mark.smart-hl{color:inherit;border:0;border-radius:3px;padding:0 2px;box-decorat
 mark.smart-hl.a{background:#ffeda3}
 mark.smart-hl.b{background:#cfe5ff}
 
-mark.user-hl{background:rgba(29,122,51,.14);color:inherit;border:0;border-radius:0;padding:0;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+mark.user-hl{background:#25671E;color:#fff;border:0;border-radius:0;padding:0;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+mark.user-hl.hl-b{background:#2391FF}
+mark.user-hl.hl-p{background:#AB03A9}
+mark.user-hl.hl-v{background:#500071}
+mark.user-hl,mark.user-hl *{color:#fff!important}
+/* ===== নিজস্ব সিলেকশন: ব্রাউজারের Translate/Copy/Select all মেনু ও Google সার্চ শিট বন্ধ ===== */
+.page.uhl-cs,.page.uhl-cs *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+::highlight(uhl-sel){background-color:#25671E;color:#fff}
+.uhl-h{position:absolute;width:44px;height:48px;margin-left:-22px;z-index:55;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* কিউট ড্রপ-আকৃতির হ্যান্ডেল: সূক্ষ্ম কোণটি লেখার দিকে, সাদা বর্ডার ও ছোট চকচকে বিন্দু */
+.uhl-h::after{content:"";position:absolute;top:2px;left:-3px;width:20px;height:20px;background-color:#25671E;border:0;border-radius:50% 0 50% 50%;box-shadow:none;transition:transform .12s}
+.uhl-h.uhl-e::after{left:22px;top:2px;border-radius:0 50% 50% 50%}
+.uhl-h::before{content:none}
+.uhl-h.uhl-e::before{left:30px}
+.uhl-h:active::after{transform:scale(1.15)}
+
 
 /* ===== ড্যাশবোর্ড পলিশ (v2): টাইপ-স্কেল, 4px গ্রিড, WCAG AA, 48px টাচ-টার্গেট ===== */
 .dash{--sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:32px;--line:#24733a;--ink-2:#1f3a1f;max-width:600px;line-height:1.55;-webkit-text-size-adjust:100%;text-size-adjust:100%;text-rendering:optimizeLegibility;font-kerning:normal;overflow-wrap:break-word}
@@ -2325,7 +2340,7 @@ function uhlSave(a){try{localStorage.setItem(UHL_KEY,JSON.stringify(a));}catch(e
 function uhlKids(pg){return Array.prototype.filter.call(pg.children,function(c){return !c.classList.contains("sec-act");});}
 function uhlBlockOf(pg,node){var n=node;while(n&&n.parentNode!==pg)n=n.parentNode;return n||null;}
 function uhlTextOffset(block,container,offset){var r=document.createRange();r.selectNodeContents(block);r.setEnd(container,offset);return r.toString().length;}
-function uhlWrapRange(block,s,e){
+function uhlWrapRange(block,s,e,col){
   var walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT,null),pos=0,sn=null,so=0,en=null,eo=0,cur;
   while((cur=walker.nextNode())){
     var len=cur.nodeValue.length;
@@ -2335,14 +2350,14 @@ function uhlWrapRange(block,s,e){
   }
   if(!sn||!en)return;
   var rg=document.createRange();rg.setStart(sn,so);rg.setEnd(en,eo);
-  var mk=document.createElement("mark");mk.className="user-hl";
+  var mk=document.createElement("mark");var CK=(col==="b"||col==="p"||col==="v")?col:"g";mk.className="user-hl"+(CK==="g"?"":" hl-"+CK);
   try{rg.surroundContents(mk);}catch(err){var f=rg.extractContents();mk.appendChild(f);rg.insertNode(mk);}
 }
 function uhlApplyAll(pg){
   var kids=uhlKids(pg);
   var arr=uhlLoad().filter(function(x){return uhlKeyOk(x)&&kids[x.b]&&kids[x.b].textContent.slice(x.s,x.e)===x.t;});
   arr.sort(function(a,b){return a.b-b.b||a.s-b.s;});
-  arr.forEach(function(x){uhlWrapRange(kids[x.b],x.s,x.e);});
+  arr.forEach(function(x){uhlWrapRange(kids[x.b],x.s,x.e,x.c);});
 }
 var UHL_BAR=null,UHL_PENDING=null,UHL_TIMER=null,UHL_MODE=null;
 function uhlBarEl(){
@@ -2353,45 +2368,241 @@ function uhlBarEl(){
   document.body.appendChild(UHL_BAR);
   return UHL_BAR;
 }
-function uhlHide(){if(UHL_BAR)UHL_BAR.style.display="none";UHL_PENDING=null;UHL_MODE=null;}
+function uhlHide(){UHL_LIVE=null;if(UHL_BAR)UHL_BAR.style.display="none";try{uhlColsHide();}catch(e){}UHL_PENDING=null;UHL_MODE=null;try{uhlClearSel();}catch(e){}}
 function uhlRerender(){
   var y=window.scrollY;
   personView(BOOKS[UHL_CTX?UHL_CTX.bi:0],UHL_CTX?UHL_CTX.i:0);
   window.scrollTo(0,y);
 }
+var UHL_COLORS={g:{s:"#25671E",a:"#25671E",t:"#fff"},b:{s:"#2391FF",a:"#2391FF",t:"#fff"},p:{s:"#AB03A9",a:"#AB03A9",t:"#fff"},v:{s:"#500071",a:"#500071",t:"#fff"}};
+var UHL_COLOR="g";try{var _uc=localStorage.getItem("uhl-color");if(_uc&&UHL_COLORS[_uc])UHL_COLOR=_uc;}catch(e){}
+var UHL_COLS=null,UHL_DYN=null;
+function uhlTheme(){
+  var c=UHL_COLORS[UHL_COLOR]||UHL_COLORS.g;
+  if(!UHL_DYN){UHL_DYN=document.createElement("style");UHL_DYN.id="uhl-dyn";document.head.appendChild(UHL_DYN);}
+  UHL_DYN.textContent="::highlight(uhl-sel){background-color:"+c.a+";color:"+c.t+"}.uhl-h::after{background-color:"+c.s+"}";
+}
+function uhlColsEl(){
+  if(UHL_COLS)return UHL_COLS;
+  UHL_COLS=document.createElement("div");UHL_COLS.id="uhl-cols";
+  UHL_COLS.style.cssText="position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;display:none;gap:14px;align-items:center;background:#fff;border-radius:999px;padding:8px 14px;box-shadow:0 8px 18px -8px rgba(0,0,0,.5)";
+  UHL_COLS.addEventListener("mousedown",function(ev){ev.preventDefault();});
+  document.body.appendChild(UHL_COLS);
+  return UHL_COLS;
+}
+function uhlColsShow(cb,cur){
+  var box=uhlColsEl();box.innerHTML="";box.style.display="flex";
+  [["g","সবুজ"],["b","নীল"],["p","বেগুনি"],["v","গাঢ় বেগুনি"]].forEach(function(o){
+    var d=document.createElement("button");d.type="button";d.setAttribute("aria-label",o[1]);
+    d.style.cssText="width:34px;height:34px;border-radius:50%;padding:0;cursor:pointer;background:"+UHL_COLORS[o[0]].s+";border:0;box-shadow:none";
+    d.onclick=function(ev){ev.preventDefault();ev.stopPropagation();cb(o[0]);};
+    box.appendChild(d);
+  });
+}
+function uhlColsHide(){if(UHL_COLS)UHL_COLS.style.display="none";}
+var UHL_LIVE=null;/* এই মুহূর্তে যে মার্কটি অটো-সেভ হয়েছে তার id */
+var UHL_NOCLICK=0;/* আঙুল তোলার পর সিন্থেটিক ক্লিক এড়াতে */
+function uhlColsCompact(onPick){
+  /* শুধু তিনটি রঙের বৃত্ত; চাপলেই সেটি স্থায়ী রং হয়ে যায় */
+  var box=uhlColsEl();box.innerHTML="";box.style.display="flex";
+  ["g","b","p","v"].forEach(function(k){
+    var d=document.createElement("button");d.type="button";d.setAttribute("aria-label",{g:"সবুজ",b:"নীল",p:"বেগুনি",v:"গাঢ় বেগুনি"}[k]);
+    var on=k===UHL_COLOR;
+    d.style.cssText="width:26px;height:26px;border-radius:50%;padding:0;cursor:pointer;border:0;background:"+UHL_COLORS[k].s+";box-shadow:none;transition:transform .12s";
+    d.onclick=function(ev){ev.preventDefault();ev.stopPropagation();onPick(k);uhlColsCompact(onPick);};
+    box.appendChild(d);
+  });
+}
 function uhlShowAdd(p){
-  var bar=uhlBarEl();bar.textContent="✏️ মার্ক করুন";bar.style.display="block";UHL_MODE="add";
+  /* সিলেক্ট করলেই আগে থেকে বাছাই করা রঙে অটোমেটিক মার্ক হয়ে যায় */
+  var a=uhlLoad(),key=UHL_CTX?UHL_CTX.k:"book-1:0",idx=-1;
+  if(UHL_LIVE){for(var i=0;i<a.length;i++){if(a[i].id===UHL_LIVE){idx=i;break;}}}
+  if(idx>=0){a[idx].b=p.b;a[idx].s=p.s;a[idx].e=p.e;a[idx].t=p.t;a[idx].c=UHL_COLOR;}
+  else{UHL_LIVE="h"+Date.now()+Math.random().toString(36).slice(2,6);a.push({id:UHL_LIVE,k:key,b:p.b,s:p.s,e:p.e,t:p.t,c:UHL_COLOR});}
+  uhlSave(a);
+  var bar=uhlBarEl();bar.style.display="none";UHL_MODE="add";
+  uhlTheme();
+  uhlColsCompact(function(k){
+    UHL_COLOR=k;try{localStorage.setItem("uhl-color",k);}catch(e){}
+    uhlTheme();
+    var b=uhlLoad();for(var j=0;j<b.length;j++){if(b[j].id===UHL_LIVE){b[j].c=k;uhlSave(b);break;}}
+    if(UHL_SEL)uhlDraw();
+  });
   bar.onclick=function(){
-    var a=uhlLoad();a.push({k:UHL_CTX?UHL_CTX.k:"book-1:0",b:p.b,s:p.s,e:p.e,t:p.t});uhlSave(a);
-    window.getSelection().removeAllRanges();uhlHide();uhlRerender();
+    var b=uhlLoad();b=b.filter(function(x){return x.id!==UHL_LIVE;});uhlSave(b);
+    UHL_LIVE=null;try{window.getSelection().removeAllRanges();}catch(e){}uhlHide();
   };
 }
+function uhlFinish(){
+  /* সিলেকশনের বাইরে চাপলে মার্কটি স্থায়ীভাবে দেখানো হয় */
+  var had=!!UHL_LIVE;UHL_LIVE=null;
+  try{window.getSelection().removeAllRanges();}catch(e){}
+  uhlHide();if(had)uhlRerender();
+}
 function uhlShowRemove(mk,blk,pgIdx){
-  var bar=uhlBarEl();bar.textContent="✕ মার্ক বাতিল করুন";bar.style.display="block";UHL_MODE="remove";
+  var bar=uhlBarEl();bar.style.display="none";UHL_MODE="remove";
   var r=document.createRange();r.selectNodeContents(blk);r.setEnd(mk,0);var s=r.toString().length;
   var e=s+mk.textContent.length,t=mk.textContent;
-  bar.onclick=function(){
-    var a=uhlLoad();
-    var idx=-1;
-    for(var k=0;k<a.length;k++){if(uhlKeyOk(a[k])&&a[k].b===pgIdx&&a[k].s===s&&a[k].e===e){idx=k;break;}}
-    if(idx<0){for(var k2=0;k2<a.length;k2++){if(uhlKeyOk(a[k2])&&a[k2].b===pgIdx&&a[k2].t===t){idx=k2;break;}}}
-    if(idx>=0){a.splice(idx,1);uhlSave(a);}
-    uhlHide();uhlRerender();
+  var find=function(a){
+    for(var k=0;k<a.length;k++){if(uhlKeyOk(a[k])&&a[k].b===pgIdx&&a[k].s===s&&a[k].e===e)return k;}
+    for(var k2=0;k2<a.length;k2++){if(uhlKeyOk(a[k2])&&a[k2].b===pgIdx&&a[k2].t===t)return k2;}
+    return -1;
   };
+  var cur=mk.classList.contains("hl-b")?"b":(mk.classList.contains("hl-p")?"p":(mk.classList.contains("hl-v")?"v":"g"));
+  uhlColsShow(function(k){
+    var a=uhlLoad(),idx=find(a);
+    if(idx>=0){a[idx].c=k;uhlSave(a);}
+    UHL_COLOR=k;try{localStorage.setItem("uhl-color",k);}catch(e){}
+    uhlHide();uhlRerender();
+  },cur);
+  var del=document.createElement("button");del.type="button";del.setAttribute("aria-label","মার্ক মুছুন");del.textContent="✕ মুছুন";
+  del.style.cssText="font:700 14px system-ui,sans-serif;color:#fff;background:#b3261e;border:0;border-radius:999px;padding:6px 12px;cursor:pointer;margin-left:4px;white-space:nowrap";
+  del.onclick=function(ev){ev.preventDefault();ev.stopPropagation();var a=uhlLoad(),idx=find(a);if(idx>=0){a.splice(idx,1);uhlSave(a);}uhlHide();uhlRerender();};
+  uhlColsEl().appendChild(del);
+}
+/* ---- নিজস্ব সিলেকশন (লং-প্রেস + হ্যান্ডেল) ---- */
+var UHL_CUSTOM=!!(window.CSS&&CSS.highlights&&window.Highlight&&document.caretRangeFromPoint);
+var UHL_SEL=null,UHL_PG=null,UHL_HS=null,UHL_HE=null,UHL_T0=0,UHL_INIT=false,UHL_DRAG=null,UHL_LP=null;
+function uhlClearSel(){
+  UHL_SEL=null;UHL_DRAG=null;
+  try{if(window.CSS&&CSS.highlights)CSS.highlights.delete("uhl-sel");}catch(e){}
+  if(UHL_HS)UHL_HS.style.display="none";
+  if(UHL_HE)UHL_HE.style.display="none";
+}
+function uhlDeselect(){
+  var had=!!UHL_SEL;uhlClearSel();
+  if(had&&UHL_MODE==="add"){if(UHL_LIVE){uhlFinish();return;}if(UHL_BAR)UHL_BAR.style.display="none";uhlColsHide();UHL_PENDING=null;UHL_MODE=null;}
+}
+function uhlMkHandle(){
+  var h=document.createElement("div");h.className="uhl-h";h.style.display="none";document.body.appendChild(h);
+  h.addEventListener("touchstart",function(e){
+    if(!UHL_SEL)return;
+    e.preventDefault();e.stopPropagation();
+    var fixed=document.createRange();
+    if(h===UHL_HS)fixed.setStart(UHL_SEL.endContainer,UHL_SEL.endOffset);
+    else fixed.setStart(UHL_SEL.startContainer,UHL_SEL.startOffset);
+    fixed.collapse(true);
+    UHL_DRAG={fixed:fixed,blk:uhlBlockOf(UHL_PG,UHL_SEL.startContainer)};
+  },{passive:false});
+  return h;
+}
+function uhlDraw(){
+  if(!UHL_SEL)return;
+  try{CSS.highlights.set("uhl-sel",new Highlight(UHL_SEL));}catch(e){}
+  var rs=Array.prototype.filter.call(UHL_SEL.getClientRects(),function(r){return r.width>0.5&&r.height>0.5;});
+  if(!rs.length)return;
+  var a=rs[0],b=rs[rs.length-1],sx=window.pageXOffset,sy=window.pageYOffset;
+  if(!UHL_HS){UHL_HS=uhlMkHandle();UHL_HE=uhlMkHandle();UHL_HS.classList.add("uhl-s");UHL_HE.classList.add("uhl-e");}
+  UHL_HS.style.left=(a.left+sx)+"px";UHL_HS.style.top=(a.bottom+sy-2)+"px";UHL_HS.style.display="block";
+  UHL_HE.style.left=(b.right+sx)+"px";UHL_HE.style.top=(b.bottom+sy-2)+"px";UHL_HE.style.display="block";
+}
+function uhlSelCommit(){
+  var pg=UHL_PG;if(!UHL_SEL||!pg)return;
+  var blk=uhlBlockOf(pg,UHL_SEL.startContainer);
+  if(!blk||blk.classList.contains("sec-act")){uhlDeselect();return;}
+  var s=uhlTextOffset(blk,UHL_SEL.startContainer,UHL_SEL.startOffset);
+  var e=uhlTextOffset(blk,UHL_SEL.endContainer,UHL_SEL.endOffset);
+  var t=blk.textContent.slice(s,e);
+  if(!t.trim()){uhlDeselect();return;}
+  UHL_PENDING={b:uhlKids(pg).indexOf(blk),s:s,e:e,t:t};
+  uhlShowAdd(UHL_PENDING);
+}
+function uhlLongPress(pg,x,y){
+  if(!document.body.contains(pg))return;
+  var r=document.caretRangeFromPoint(x,y);
+  if(!r||r.startContainer.nodeType!==3||!pg.contains(r.startContainer))return;
+  var node=r.startContainer,par=node.parentElement;
+  if(par&&par.closest&&par.closest("button,a,input,textarea,select,summary"))return;
+  var blk=uhlBlockOf(pg,node);
+  if(!blk||blk.classList.contains("sec-act"))return;
+  var tx=node.nodeValue,len=tx.length,i=r.startOffset;
+  var SEP=/[\s।,.;:!?()\[\]{}"'‘’“”«»—–\-\/]/;
+  var k=-1;
+  if(i<len&&!SEP.test(tx.charAt(i)))k=i;else if(i>0&&!SEP.test(tx.charAt(i-1)))k=i-1;
+  if(k<0)return;
+  var s=k,e=k+1;
+  while(s>0&&!SEP.test(tx.charAt(s-1)))s--;
+  while(e<len&&!SEP.test(tx.charAt(e)))e++;
+  var rg=document.createRange();rg.setStart(node,s);rg.setEnd(node,e);
+  try{window.getSelection().removeAllRanges();}catch(x1){}
+  UHL_SEL=rg;UHL_PG=pg;UHL_T0=Date.now();
+  var ws=document.createRange();ws.setStart(node,s);ws.collapse(true);
+  var we=document.createRange();we.setStart(node,e);we.collapse(true);
+  UHL_DRAG={direct:true,ws:ws,we:we,blk:blk};
+  uhlDraw();uhlSelCommit();
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(x2){}
+}
+function uhlInitOnce(){
+  if(UHL_INIT)return;UHL_INIT=true;
+  document.addEventListener("touchmove",function(e){
+    if(!UHL_DRAG)return;
+    e.preventDefault();
+    var t=e.touches[0];if(!t)return;
+    if(t.clientY<90)window.scrollBy(0,-14);else if(t.clientY>window.innerHeight-130)window.scrollBy(0,14);
+    var r=document.caretRangeFromPoint(t.clientX,t.clientY-(UHL_DRAG.direct?0:30));
+    if(!r||!UHL_DRAG.blk||!UHL_DRAG.blk.contains(r.startContainer))return;
+    var mv=document.createRange();mv.setStart(r.startContainer,r.startOffset);mv.collapse(true);
+    if(UHL_DRAG.direct){
+      /* চেপে ধরে আঙুল সামনে/পেছনে টানলেই মার্ক বাড়ে */
+      var D=UHL_DRAG,dr=document.createRange();
+      if(D.ws.compareBoundaryPoints(Range.START_TO_START,mv)<=0){
+        dr.setStart(D.ws.startContainer,D.ws.startOffset);
+        if(D.we.compareBoundaryPoints(Range.START_TO_START,mv)<0)dr.setEnd(mv.startContainer,mv.startOffset);else dr.setEnd(D.we.startContainer,D.we.startOffset);
+      }else{dr.setStart(mv.startContainer,mv.startOffset);dr.setEnd(D.we.startContainer,D.we.startOffset);}
+      if(dr.collapsed)return;
+      UHL_SEL=dr;uhlDraw();return;
+    }
+    var f=UHL_DRAG.fixed,nr=document.createRange();
+    if(f.compareBoundaryPoints(Range.START_TO_START,mv)<=0){nr.setStart(f.startContainer,f.startOffset);nr.setEnd(mv.startContainer,mv.startOffset);}
+    else{nr.setStart(mv.startContainer,mv.startOffset);nr.setEnd(f.startContainer,f.startOffset);}
+    if(nr.collapsed)return;
+    UHL_SEL=nr;uhlDraw();
+  },{passive:false});
+  var endDrag=function(){if(!UHL_DRAG)return;UHL_DRAG=null;UHL_T0=Date.now();uhlSelCommit();if(UHL_LIVE){UHL_NOCLICK=Date.now();uhlFinish();}};
+  document.addEventListener("touchend",endDrag,{passive:true});
+  document.addEventListener("touchcancel",endDrag,{passive:true});
+  document.addEventListener("click",function(ev){
+    if(!UHL_SEL)return;
+    if(!document.body.contains(UHL_PG)){uhlClearSel();return;}
+    if(ev.target.closest&&ev.target.closest("#uhl-bar,#uhl-cols,.uhl-h"))return;
+    ev.preventDefault();ev.stopPropagation();
+    if(Date.now()-UHL_T0>500)uhlDeselect();
+  },true);
+  window.addEventListener("hashchange",function(){UHL_LIVE=null;uhlDeselect();});
+  window.addEventListener("resize",function(){if(UHL_SEL)uhlDraw();});
 }
 function uhlWire(pg){
   uhlHide();
   pg.addEventListener("click",function(ev){
+    if(Date.now()-UHL_NOCLICK<450)return;
     var m=ev.target.closest?ev.target.closest("mark.user-hl"):null;
     if(m&&pg.contains(m)){
       var blk=uhlBlockOf(pg,m);
       if(blk)uhlShowRemove(m,blk,uhlKids(pg).indexOf(blk));
     }else if(UHL_MODE==="remove"){uhlHide();}
   });
+  if(UHL_CUSTOM){
+    uhlInitOnce();
+    pg.classList.add("uhl-cs");
+    pg.addEventListener("contextmenu",function(e){e.preventDefault();});
+    pg.addEventListener("touchstart",function(e){
+      clearTimeout(UHL_TIMER);
+      if(e.touches.length!==1)return;
+      var t=e.touches[0];UHL_LP={x:t.clientX,y:t.clientY};
+      UHL_TIMER=setTimeout(function(){uhlLongPress(pg,UHL_LP.x,UHL_LP.y);},420);
+    },{passive:true});
+    pg.addEventListener("touchmove",function(e){
+      var t=e.touches[0];
+      if(UHL_LP&&t&&Math.abs(t.clientX-UHL_LP.x)+Math.abs(t.clientY-UHL_LP.y)>10)clearTimeout(UHL_TIMER);
+    },{passive:true});
+    ["touchend","touchcancel"].forEach(function(n){pg.addEventListener(n,function(){clearTimeout(UHL_TIMER);},{passive:true});});
+    return;
+  }
+  /* পুরোনো ব্রাউজারের জন্য আগের পদ্ধতি */
   var check=function(){
     if(!document.body.contains(pg)){return;}
     var sel=window.getSelection();
-    if(!sel||sel.isCollapsed||sel.rangeCount===0){if(UHL_MODE==="add")uhlHide();return;}
+    if(!sel||sel.isCollapsed||sel.rangeCount===0){if(UHL_MODE==="add"){if(UHL_LIVE)uhlFinish();else uhlHide();}return;}
     var rg=sel.getRangeAt(0);
     if(!pg.contains(rg.commonAncestorContainer)){return;}
     var blk=uhlBlockOf(pg,rg.startContainer);
