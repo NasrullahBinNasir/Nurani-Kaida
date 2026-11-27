@@ -1958,7 +1958,6 @@ function groupView(b,g){
   NAV.p=null;NAV.n=null;
   if(g>1){gnav.appendChild(link("#"+b.id+"-g-"+(g-1),"btn","‹ "+gLab(g-1)));NAV.n=b.id+"-g-"+(g-1);}
   if(g<totG){gnav.appendChild(link("#"+b.id+"-g-"+(g+1),"btn",gLab(g+1)+" ›"));NAV.p=b.id+"-g-"+(g+1);}
-  app.appendChild(gnav);
 }
 function bnN(n){return String(n).replace(/[0-9]/g,function(d){return "০১২৩৪৫৬৭৮৯".charAt(d);});}
 function mkFormat(pg){
