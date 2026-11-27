@@ -992,6 +992,13 @@ body.toc.mkhome #app{box-sizing:border-box;min-height:calc(100vh - 40px);min-hei
 body.toc.mkhome #app>.back{align-self:flex-start}
 body.toc.mkhome #app>.head{margin-top:auto}
 body.toc.mkhome #app>:last-child{margin-bottom:auto}
+
+/* ===== হাদিসে কুদসি: "হাদীস ১–১০" শিরোনাম সাধারণ সবুজ পিল ===== */
+html body .page.paper.hq h1.hq-gh{display:table!important;width:auto!important;max-width:100%!important;margin:6px auto 18px!important;padding:6px 26px!important;background:linear-gradient(180deg,#31a04a 0%,#1d7a33 100%)!important;color:#fff!important;border:0!important;border-radius:999px!important;font-size:calc(var(--fs)*1.15)!important;font-weight:700!important;line-height:1.4!important;box-shadow:0 8px 16px -10px rgba(29,122,51,.9)!important}
+html body .page.paper.hq h1.hq-gh::before,html body .page.paper.hq h1.hq-gh::after{content:none!important;display:none!important}
+.hqbar .hq-bt{flex:1 1 0;min-width:0;align-self:center;text-align:center;font-weight:800;font-size:17px;line-height:1.3;color:#1d7a33;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+.hqbar .hq-bt~.ctl{margin-left:0}
+html body .page.paper.hq h1.hq-gh{display:none!important}
 </style>
 <style id="hq-ck-style">.hq-ckg{flex-direction:column;gap:6px}.hq-wc.hq-ck{width:100%;box-sizing:border-box;align-items:flex-start;text-align:right}.hq-wc.hq-ck b{white-space:normal;text-align:right;width:100%}.page.paper.hq .hq-wc.hq-ck i{display:block;max-width:none;direction:ltr;text-align:left;width:100%;white-space:normal;line-height:1.6;font-size:calc(var(--fs)*.9)}</style></head>
 <body>
@@ -1896,6 +1903,7 @@ function groupView(b,g){
   setFS(FS);
   var bar=el("div","bar read hqbar");
   bar.appendChild(link("#"+b.id,"back","‹ সূচি"));
+  var _f=(g-1)*HQG,_t=Math.min(b.people.length,_f+HQG);bar.appendChild(el("span","hq-bt","হাদীস "+bn(_f+1)+"–"+bn(_t)));
   var ctl=el("div","ctl");
   var hb=mkTg("মতন",IC_M,"tgx","false");
   var mi=el("button","fsb","অ−");mi.type="button";mi.setAttribute("aria-label","লেখা ছোট করুন");mi.onclick=function(){setFS(FS-1);};
