@@ -985,6 +985,13 @@ body.toc .rings li{flex:none;width:calc((100% - 24px)/4);max-width:none}
 .page.paper.mishkat .mk-chev{display:none!important}
 .page.paper.mishkat .mk-card.noans .mk-head:has(.mk-bm){grid-template-columns:auto 1fr}
 .page.paper.mishkat .mk-bm{position:absolute;top:-12px;right:10px;z-index:2;font-size:calc(var(--fs)*.62);line-height:1.5;padding:1px 9px;box-shadow:0 2px 6px -3px rgba(29,122,51,.6)}
+
+/* ===== ভিতরের গোল-বোতাম পাতা: বোতামগুলো পর্দার মাঝামাঝি ===== */
+body.toc.mkhome{min-height:0;box-sizing:border-box}
+body.toc.mkhome #app{box-sizing:border-box;min-height:calc(100vh - 40px);min-height:calc(100svh - 40px);display:flex;flex-direction:column}
+body.toc.mkhome #app>.back{align-self:flex-start}
+body.toc.mkhome #app>.head{margin-top:auto}
+body.toc.mkhome #app>:last-child{margin-bottom:auto}
 </style>
 <style id="hq-ck-style">.hq-ckg{flex-direction:column;gap:6px}.hq-wc.hq-ck{width:100%;box-sizing:border-box;align-items:flex-start;text-align:right}.hq-wc.hq-ck b{white-space:normal;text-align:right;width:100%}.page.paper.hq .hq-wc.hq-ck i{display:block;max-width:none;direction:ltr;text-align:left;width:100%;white-space:normal;line-height:1.6;font-size:calc(var(--fs)*.9)}</style></head>
 <body>
