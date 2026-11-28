@@ -1472,12 +1472,13 @@ function kitabBmView(i,t){
   NAV.p=null;NAV.n=null;
   document.title=B.people[i].name+" — "+bmLabel(t);
 }
+var KITAB_ONE=["কিতাবুস সাওম", "কিতাবুল হাজ্জ", "কিতাবুদ দা’ওয়াত", "কিতাবুল বুয়ূ", "কিতাবুন নিকাহ", "কিতাব ফাদায়েলুল কুরআন"];
 function kitabMenuView(i){
   var B=BOOKS[4];document.body.classList.add("toc");app.innerHTML="";
   app.appendChild(link("#book-5","back","‹ মিশকাতুল মাসাবীহ"));
   var h=el("div","head");h.appendChild(el("h1",null,B.people[i].name));h.appendChild(el("p",null,""));app.appendChild(h);
   var ul=el("ul","list");var subUl=null,lastLi=null,mn=0,sn=0;
-  (function(){var A=[["প্রশ্ন","#book-5-p-"+(i+1)+"-q",""],["নোট","#book-5-p-"+(i+1)+"-n",""]];var BML=bmLoad();BM_TYPES.slice().reverse().forEach(function(T){A.splice(2,0,[T[1],"#book-5-p-"+(i+1)+"-bm"+T[0],bn(BML.filter(function(x){return x.c===i&&(x.t||"")===T[0];}).length)+"টি প্রশ্ন",true]);});A=[A[1],A[0]].concat(A.slice(2,7));if(B.people[i].name==="কিতাবুস সাওম"||B.people[i].name==="কিতাবুল হাজ্জ"){A.push(["এক কথায় প্রশ্ন","#book-5-p-"+(i+1)+"-s",""]);}if(B.people[i].name==="কিতাবুন নিকাহ"){A.push(["নতুন","#book-5-p-"+(i+1)+"-new",""]);A.push(["এমসিকিউ","#book-5-p-"+(i+1)+"-mcq",""]);}return A;})().forEach(function(r,k){
+  (function(){var A=[["প্রশ্ন","#book-5-p-"+(i+1)+"-q",""],["নোট","#book-5-p-"+(i+1)+"-n",""]];var BML=bmLoad();BM_TYPES.slice().reverse().forEach(function(T){A.splice(2,0,[T[1],"#book-5-p-"+(i+1)+"-bm"+T[0],bn(BML.filter(function(x){return x.c===i&&(x.t||"")===T[0];}).length)+"টি প্রশ্ন",true]);});A=[A[1],A[0]].concat(A.slice(2,7));if(KITAB_ONE.indexOf(B.people[i].name)>-1){A.push(["এক কথায় প্রশ্ন","#book-5-p-"+(i+1)+"-s",""]);}if(B.people[i].name==="কিতাবুন নিকাহ"){A.push(["নতুন","#book-5-p-"+(i+1)+"-new",""]);A.push(["এমসিকিউ","#book-5-p-"+(i+1)+"-mcq",""]);}return A;})().forEach(function(r,k){
     var li=el("li");var a=link(r[1],"row");a.style.setProperty("--hue",HUES[k%HUES.length]);
     if(r[3]){
       if(!subUl){subUl=el("ul","list");subUl.setAttribute("data-sub","1");}
@@ -1502,6 +1503,8 @@ function kitabSView(i){
   if(old)old.parentNode.replaceChild(link("#book-5-p-"+(i+1),"back","‹ "+p.name),old);
   var on=app.querySelector(".nav");if(on)on.parentNode.removeChild(on);
   NAV.p=null;NAV.n=null;
+  var allTxt=parts.slice(st).join("\n\n");
+  var pgo=app.querySelector(".page.read");if(pgo&&pgo.firstElementChild){var cb=scpCopyBtn(function(){return allTxt;},"সব প্রশ্ন কপি","big block");pgo.firstElementChild.insertAdjacentElement("afterend",cb);}
   document.title=p.name+" — এক কথায় প্রশ্ন";
 }
 function kitabQView(i){
@@ -1989,7 +1992,7 @@ function groupView(b,g){
   var pg=el("div","page read paper hq hq-multi");pg.style.setProperty("--hue",HUES[g%HUES.length]);
   document.body.classList.add("paperbg");document.body.classList.add("pstr");
   var from=(g-1)*HQG,to=Math.min(b.people.length,from+HQG);
-  var t=el("h1",null,"হাদীস "+bn(from+1)+"–"+bn(to));t.className="hq-gh";pg.appendChild(t);
+  var t=el("h1",null,"হাদীস "+bn(from+1)+"–"+bn(to));t.className="hq-gh";pg.appendChild(t);pg.appendChild(scpCopyBtn(function(){return scpGroupTxt(b,from,to);},bn(to-from)+"টি হাদীস কপি","big block"));
   function keepPos(fn){
     var cards=Array.prototype.slice.call(pg.querySelectorAll(".hq-mini")),refY=bar.getBoundingClientRect().bottom+16,a=null,mode="",frac=0,top0=0;
     for(var q=0;q<cards.length;q++){
@@ -2415,17 +2418,18 @@ function uhlColsCompact(onPick){
 }
 function uhlShowAdd(p){
   /* সিলেক্ট করলেই আগে থেকে বাছাই করা রঙে অটোমেটিক মার্ক হয়ে যায় */
-  var a=uhlLoad(),key=UHL_CTX?UHL_CTX.k:"book-1:0",idx=-1;
-  if(UHL_LIVE){for(var i=0;i<a.length;i++){if(a[i].id===UHL_LIVE){idx=i;break;}}}
-  if(idx>=0){a[idx].b=p.b;a[idx].s=p.s;a[idx].e=p.e;a[idx].t=p.t;a[idx].c=UHL_COLOR;}
-  else{UHL_LIVE="h"+Date.now()+Math.random().toString(36).slice(2,6);a.push({id:UHL_LIVE,k:key,b:p.b,s:p.s,e:p.e,t:p.t,c:UHL_COLOR});}
+  var segs=Array.isArray(p)?p:[p];
+  var a=uhlLoad(),key=UHL_CTX?UHL_CTX.k:"book-1:0";
+  if(UHL_LIVE){a=a.filter(function(x){return x.id!==UHL_LIVE;});}
+  else{UHL_LIVE="h"+Date.now()+Math.random().toString(36).slice(2,6);}
+  segs.forEach(function(sg){a.push({id:UHL_LIVE,k:key,b:sg.b,s:sg.s,e:sg.e,t:sg.t,c:UHL_COLOR});});
   uhlSave(a);
   var bar=uhlBarEl();bar.style.display="none";UHL_MODE="add";
   uhlTheme();
   uhlColsCompact(function(k){
     UHL_COLOR=k;try{localStorage.setItem("uhl-color",k);}catch(e){}
     uhlTheme();
-    var b=uhlLoad();for(var j=0;j<b.length;j++){if(b[j].id===UHL_LIVE){b[j].c=k;uhlSave(b);break;}}
+    var b=uhlLoad();b.forEach(function(x){if(x.id===UHL_LIVE)x.c=k;});uhlSave(b);
     if(UHL_SEL)uhlDraw();
   });
   bar.onclick=function(){
@@ -2435,9 +2439,26 @@ function uhlShowAdd(p){
 }
 function uhlFinish(){
   /* সিলেকশনের বাইরে চাপলে মার্কটি স্থায়ীভাবে দেখানো হয় */
-  var had=!!UHL_LIVE;UHL_LIVE=null;
+  var live=UHL_LIVE,pgf=UHL_PG;UHL_LIVE=null;
   try{window.getSelection().removeAllRanges();}catch(e){}
-  uhlHide();if(had)uhlRerender();
+  uhlHide();
+  if(live&&!uhlApplyLive(live,pgf))uhlRerender();
+}
+/* আঙুল তুললে পুরো পেজ নতুন করে না সাজিয়ে শুধু মার্কটুকু বসানো হয় (ঝাঁকুনি নেই); জটিল ক্ষেত্রে আগের পদ্ধতিতে ফিরে যায় */
+function uhlApplyLive(id,pg){
+  try{
+    if(!pg||!document.body.contains(pg))return false;
+    var all=uhlLoad(),mine=all.filter(function(x){return x.id===id;});
+    if(!mine.length)return true;
+    var kids=uhlKids(pg);
+    for(var i=0;i<mine.length;i++){
+      var m=mine[i];
+      if(!kids[m.b]||kids[m.b].textContent.slice(m.s,m.e)!==m.t)return false;
+      for(var j=0;j<all.length;j++){var o=all[j];if(o.id!==id&&uhlKeyOk(o)&&o.b===m.b&&o.s<m.e&&o.e>m.s)return false;}
+    }
+    mine.forEach(function(m){uhlWrapRange(kids[m.b],m.s,m.e,m.c);});
+    return true;
+  }catch(e){return false;}
 }
 function uhlShowRemove(mk,blk,pgIdx){
   var bar=uhlBarEl();bar.style.display="none";UHL_MODE="remove";
@@ -2451,13 +2472,13 @@ function uhlShowRemove(mk,blk,pgIdx){
   var cur=mk.classList.contains("hl-b")?"b":(mk.classList.contains("hl-p")?"p":(mk.classList.contains("hl-v")?"v":"g"));
   uhlColsShow(function(k){
     var a=uhlLoad(),idx=find(a);
-    if(idx>=0){a[idx].c=k;uhlSave(a);}
+    if(idx>=0){var gid=a[idx].id;a.forEach(function(x){if(x.id===gid)x.c=k;});uhlSave(a);}
     UHL_COLOR=k;try{localStorage.setItem("uhl-color",k);}catch(e){}
     uhlHide();uhlRerender();
   },cur);
   var del=document.createElement("button");del.type="button";del.setAttribute("aria-label","মার্ক মুছুন");del.textContent="✕ মুছুন";
   del.style.cssText="font:700 14px system-ui,sans-serif;color:#fff;background:#b3261e;border:0;border-radius:999px;padding:6px 12px;cursor:pointer;margin-left:4px;white-space:nowrap";
-  del.onclick=function(ev){ev.preventDefault();ev.stopPropagation();var a=uhlLoad(),idx=find(a);if(idx>=0){a.splice(idx,1);uhlSave(a);}uhlHide();uhlRerender();};
+  del.onclick=function(ev){ev.preventDefault();ev.stopPropagation();var a=uhlLoad(),idx=find(a);if(idx>=0){var gid=a[idx].id;a=a.filter(function(x){return x.id!==gid;});uhlSave(a);}uhlHide();uhlRerender();};
   uhlColsEl().appendChild(del);
 }
 /* ---- নিজস্ব সিলেকশন (লং-প্রেস + হ্যান্ডেল) ---- */
@@ -2482,13 +2503,17 @@ function uhlMkHandle(){
     if(h===UHL_HS)fixed.setStart(UHL_SEL.endContainer,UHL_SEL.endOffset);
     else fixed.setStart(UHL_SEL.startContainer,UHL_SEL.startOffset);
     fixed.collapse(true);
-    UHL_DRAG={fixed:fixed,blk:uhlBlockOf(UHL_PG,UHL_SEL.startContainer)};
+    UHL_DRAG={fixed:fixed,blk:uhlBlockOf(UHL_PG,UHL_SEL.startContainer)};UHL_LASTC=null;
   },{passive:false});
   return h;
 }
 function uhlDraw(){
   if(!UHL_SEL)return;
-  try{CSS.highlights.set("uhl-sel",new Highlight(UHL_SEL));}catch(e){}
+  try{
+    if(!UHL_HL||!CSS.highlights.has("uhl-sel")){UHL_HL=new Highlight();CSS.highlights.set("uhl-sel",UHL_HL);}
+    UHL_HL.clear();UHL_HL.add(UHL_SEL);
+  }catch(e){}
+  if(UHL_DRAG&&UHL_DRAG.direct){if(UHL_HS)UHL_HS.style.display="none";if(UHL_HE)UHL_HE.style.display="none";return;}
   var rs=Array.prototype.filter.call(UHL_SEL.getClientRects(),function(r){return r.width>0.5&&r.height>0.5;});
   if(!rs.length)return;
   var a=rs[0],b=rs[rs.length-1],sx=window.pageXOffset,sy=window.pageYOffset;
@@ -2498,14 +2523,25 @@ function uhlDraw(){
 }
 function uhlSelCommit(){
   var pg=UHL_PG;if(!UHL_SEL||!pg)return;
-  var blk=uhlBlockOf(pg,UHL_SEL.startContainer);
-  if(!blk||blk.classList.contains("sec-act")){uhlDeselect();return;}
-  var s=uhlTextOffset(blk,UHL_SEL.startContainer,UHL_SEL.startOffset);
-  var e=uhlTextOffset(blk,UHL_SEL.endContainer,UHL_SEL.endOffset);
-  var t=blk.textContent.slice(s,e);
-  if(!t.trim()){uhlDeselect();return;}
-  UHL_PENDING={b:uhlKids(pg).indexOf(blk),s:s,e:e,t:t};
-  uhlShowAdd(UHL_PENDING);
+  var kids=uhlKids(pg);
+  var sb=uhlBlockOf(pg,UHL_SEL.startContainer),eb=uhlBlockOf(pg,UHL_SEL.endContainer);
+  if(!sb||!eb||sb.classList.contains("sec-act")||eb.classList.contains("sec-act")){uhlDeselect();return;}
+  var si=kids.indexOf(sb),ei=kids.indexOf(eb);
+  if(si<0||ei<0){uhlDeselect();return;}
+  /* একাধিক অনুচ্ছেদ/লাইন জুড়ে সিলেকশন হলে প্রতিটি ব্লকের জন্য আলাদা অংশ তৈরি হয় */
+  var segs=[];
+  for(var i=si;i<=ei;i++){
+    var blk=kids[i];
+    var s=(i===si)?uhlTextOffset(blk,UHL_SEL.startContainer,UHL_SEL.startOffset):0;
+    var e=(i===ei)?uhlTextOffset(blk,UHL_SEL.endContainer,UHL_SEL.endOffset):blk.textContent.length;
+    if(e<=s)continue;
+    var t=blk.textContent.slice(s,e);
+    if(!t.trim())continue;
+    segs.push({b:i,s:s,e:e,t:t});
+  }
+  if(!segs.length){uhlDeselect();return;}
+  UHL_PENDING=segs;
+  uhlShowAdd(segs);
 }
 function uhlLongPress(pg,x,y){
   if(!document.body.contains(pg))return;
@@ -2528,9 +2564,73 @@ function uhlLongPress(pg,x,y){
   UHL_SEL=rg;UHL_PG=pg;UHL_T0=Date.now();
   var ws=document.createRange();ws.setStart(node,s);ws.collapse(true);
   var we=document.createRange();we.setStart(node,e);we.collapse(true);
-  UHL_DRAG={direct:true,ws:ws,we:we,blk:blk};
+  UHL_DRAG={direct:true,ws:ws,we:we,blk:blk};UHL_LASTC=null;
   uhlDraw();uhlSelCommit();
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(x2){}
+}
+var UHL_TP=null,UHL_RAF=0,UHL_LASTC=null,UHL_HL=null;
+/* ব্লকের শুরু/শেষের বিন্দু */
+function uhlEdge(blk,atEnd){
+  var w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT,null),n,first=null,last=null;
+  while((n=w.nextNode())){if(!n.nodeValue.length)continue;if(!first)first=n;last=n;}
+  if(!first)return null;
+  var r=document.createRange();
+  if(atEnd)r.setStart(last,last.nodeValue.length);else r.setStart(first,0);
+  r.collapse(true);return r;
+}
+/* আঙুলের নিচে লেখা না থাকলেও (লাইনের ফাঁক, অনুচ্ছেদের মাঝের ফাঁক) নিকটতম বিন্দু খুঁজে নেয়, তাই আর আটকায় না */
+function uhlCaretAt(x,y){
+  var pg=UHL_PG;if(!pg)return null;
+  var offs=[0,7,-7,14,-14,22,-22];
+  for(var i=0;i<offs.length;i++){
+    var r=document.caretRangeFromPoint(x,y+offs[i]);
+    if(r&&r.startContainer.nodeType===3&&pg.contains(r.startContainer)){
+      var nb=uhlBlockOf(pg,r.startContainer);
+      if(nb&&!nb.classList.contains("sec-act"))return r;
+    }
+  }
+  var kids=uhlKids(pg),prev=null;
+  for(var k=0;k<kids.length;k++){
+    var rc=kids[k].getBoundingClientRect();
+    if(rc.height<1)continue;
+    if(y<rc.top){return prev?uhlEdge(prev,true):uhlEdge(kids[k],false);}
+    if(y<=rc.bottom){return uhlEdge(kids[k],y>(rc.top+rc.bottom)/2);}
+    prev=kids[k];
+  }
+  return prev?uhlEdge(prev,true):null;
+}
+function uhlMoveTo(x,y){
+  var D=UHL_DRAG;if(!D)return;
+  var r=uhlCaretAt(x,y-34);if(!r)return;
+  if(UHL_LASTC&&UHL_LASTC.n===r.startContainer&&UHL_LASTC.o===r.startOffset)return;
+  UHL_LASTC={n:r.startContainer,o:r.startOffset};
+  var mv=document.createRange();mv.setStart(r.startContainer,r.startOffset);mv.collapse(true);
+  if(D.direct){
+    /* চেপে ধরে আঙুল সামনে/পেছনে টানলেই মার্ক বাড়ে-কমে */
+    var dr=document.createRange();
+    if(D.ws.compareBoundaryPoints(Range.START_TO_START,mv)<=0){
+      dr.setStart(D.ws.startContainer,D.ws.startOffset);
+      if(D.we.compareBoundaryPoints(Range.START_TO_START,mv)<0)dr.setEnd(mv.startContainer,mv.startOffset);else dr.setEnd(D.we.startContainer,D.we.startOffset);
+    }else{dr.setStart(mv.startContainer,mv.startOffset);dr.setEnd(D.we.startContainer,D.we.startOffset);}
+    if(dr.collapsed)return;
+    UHL_SEL=dr;uhlDraw();return;
+  }
+  var f=D.fixed,nr=document.createRange();
+  if(f.compareBoundaryPoints(Range.START_TO_START,mv)<=0){nr.setStart(f.startContainer,f.startOffset);nr.setEnd(mv.startContainer,mv.startOffset);}
+  else{nr.setStart(mv.startContainer,mv.startOffset);nr.setEnd(f.startContainer,f.startOffset);}
+  if(nr.collapsed)return;
+  UHL_SEL=nr;uhlDraw();
+}
+/* প্রতি ফ্রেমে: কিনারায় থাকলে মসৃণ স্ক্রল, তারপর সিলেকশন আপডেট */
+function uhlTick(){
+  UHL_RAF=0;
+  if(!UHL_DRAG||!UHL_TP)return;
+  var y=UHL_TP.y,H=window.innerHeight,dy=0;
+  if(y<130)dy=-Math.ceil((130-y)/130*20);
+  else if(y>H-170)dy=Math.ceil((y-(H-170))/170*20);
+  if(dy){window.scrollBy(0,dy);UHL_TP.d=true;}
+  if(UHL_TP.d){UHL_TP.d=false;uhlMoveTo(UHL_TP.x,UHL_TP.y);}
+  if(dy)UHL_RAF=requestAnimationFrame(uhlTick);
 }
 function uhlInitOnce(){
   if(UHL_INIT)return;UHL_INIT=true;
@@ -2538,27 +2638,18 @@ function uhlInitOnce(){
     if(!UHL_DRAG)return;
     e.preventDefault();
     var t=e.touches[0];if(!t)return;
-    if(t.clientY<90)window.scrollBy(0,-14);else if(t.clientY>window.innerHeight-130)window.scrollBy(0,14);
-    var r=document.caretRangeFromPoint(t.clientX,t.clientY-(UHL_DRAG.direct?0:30));
-    if(!r||!UHL_DRAG.blk||!UHL_DRAG.blk.contains(r.startContainer))return;
-    var mv=document.createRange();mv.setStart(r.startContainer,r.startOffset);mv.collapse(true);
-    if(UHL_DRAG.direct){
-      /* চেপে ধরে আঙুল সামনে/পেছনে টানলেই মার্ক বাড়ে */
-      var D=UHL_DRAG,dr=document.createRange();
-      if(D.ws.compareBoundaryPoints(Range.START_TO_START,mv)<=0){
-        dr.setStart(D.ws.startContainer,D.ws.startOffset);
-        if(D.we.compareBoundaryPoints(Range.START_TO_START,mv)<0)dr.setEnd(mv.startContainer,mv.startOffset);else dr.setEnd(D.we.startContainer,D.we.startOffset);
-      }else{dr.setStart(mv.startContainer,mv.startOffset);dr.setEnd(D.we.startContainer,D.we.startOffset);}
-      if(dr.collapsed)return;
-      UHL_SEL=dr;uhlDraw();return;
-    }
-    var f=UHL_DRAG.fixed,nr=document.createRange();
-    if(f.compareBoundaryPoints(Range.START_TO_START,mv)<=0){nr.setStart(f.startContainer,f.startOffset);nr.setEnd(mv.startContainer,mv.startOffset);}
-    else{nr.setStart(mv.startContainer,mv.startOffset);nr.setEnd(f.startContainer,f.startOffset);}
-    if(nr.collapsed)return;
-    UHL_SEL=nr;uhlDraw();
+    /* ভারী কাজ প্রতিটি টাচ-ইভেন্টে নয়, ফ্রেমে একবার */
+    if(UHL_TP&&Math.abs(t.clientX-UHL_TP.x)+Math.abs(t.clientY-UHL_TP.y)<2)return;
+    UHL_TP={x:t.clientX,y:t.clientY,d:true};
+    if(!UHL_RAF)UHL_RAF=requestAnimationFrame(uhlTick);
   },{passive:false});
-  var endDrag=function(){if(!UHL_DRAG)return;UHL_DRAG=null;UHL_T0=Date.now();uhlSelCommit();if(UHL_LIVE){UHL_NOCLICK=Date.now();uhlFinish();}};
+  var endDrag=function(){
+    if(!UHL_DRAG)return;
+    if(UHL_RAF){cancelAnimationFrame(UHL_RAF);UHL_RAF=0;}
+    if(UHL_TP&&UHL_TP.d){UHL_TP.d=false;try{uhlMoveTo(UHL_TP.x,UHL_TP.y);}catch(x){}}
+    UHL_TP=null;UHL_LASTC=null;
+    UHL_DRAG=null;UHL_T0=Date.now();uhlSelCommit();if(UHL_LIVE){UHL_NOCLICK=Date.now();uhlFinish();}
+  };
   document.addEventListener("touchend",endDrag,{passive:true});
   document.addEventListener("touchcancel",endDrag,{passive:true});
   document.addEventListener("click",function(ev){
@@ -2589,7 +2680,7 @@ function uhlWire(pg){
       clearTimeout(UHL_TIMER);
       if(e.touches.length!==1)return;
       var t=e.touches[0];UHL_LP={x:t.clientX,y:t.clientY};
-      UHL_TIMER=setTimeout(function(){uhlLongPress(pg,UHL_LP.x,UHL_LP.y);},420);
+      UHL_TIMER=setTimeout(function(){uhlLongPress(pg,UHL_LP.x,UHL_LP.y);},350);
     },{passive:true});
     pg.addEventListener("touchmove",function(e){
       var t=e.touches[0];
@@ -2773,6 +2864,83 @@ function talhaSecActions(pg){
   var hs=Array.prototype.slice.call(pg.querySelectorAll("h2")).filter(function(h){return h.parentNode===pg&&h.textContent.indexOf("ইসলাম গ্রহণ ও নির্যাতন")>-1;});
   if(hs.length)secActions(pg,hs[0]);
 }
+function scpStyle(){
+  if(document.getElementById("scpCss"))return;
+  var st=document.createElement("style");st.id="scpCss";
+  st.textContent=
+  ".scp-btn{--g1:#2e9a4f;--g2:#1b6b36;display:inline-flex;align-items:center;justify-content:center;gap:6px;vertical-align:middle;margin-left:8px;padding:0 11px 0 9px;height:26px;font:inherit;font-size:12.5px;font-weight:700;letter-spacing:.2px;line-height:1;white-space:nowrap;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2));border:0;border-radius:999px;box-shadow:0 2px 6px rgba(27,107,54,.35),inset 0 1px 0 rgba(255,255,255,.28);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}"+
+  ".scp-btn svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}"+
+  ".scp-btn:active{transform:scale(.94);box-shadow:0 1px 3px rgba(27,107,54,.35),inset 0 1px 0 rgba(255,255,255,.2)}"+
+  ".scp-btn:hover{filter:brightness(1.07)}.scp-btn:focus-visible{outline:2px solid #1b6b36;outline-offset:2px}"+
+  ".scp-btn.ok{--g1:#f0b429;--g2:#c47d00;animation:scpPop .35s ease}"+
+  ".scp-btn.err{--g1:#e5534b;--g2:#b3261e}"+
+  "@keyframes scpPop{0%{transform:scale(.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}"+
+  ".scp-btn.big{height:40px;padding:0 18px 0 15px;gap:8px;font-size:15.5px;margin:10px 0 0;box-shadow:0 4px 12px rgba(27,107,54,.38),inset 0 1px 0 rgba(255,255,255,.3)}"+
+  ".scp-btn.big svg{width:19px;height:19px}"+
+  ".scp-btn.block{display:flex;width:max-content;max-width:100%;margin:10px auto 2px}"+
+  "@media (prefers-reduced-motion:reduce){.scp-btn,.scp-btn.ok{animation:none;transition:none}}";
+  document.head.appendChild(st);
+}
+var SCP_ICO_COPY='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>';
+var SCP_ICO_OK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+var SCP_ICO_ERR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+function scpSet(bt,ico,txt){bt.innerHTML=ico+"<span>"+txt+"</span>";}
+function scpCopyBtn(getText,label,size){
+  scpStyle();
+  var l=label||"কপি";
+  var bt=document.createElement("button");
+  bt.type="button";bt.className="scp-btn"+(size?" "+size:"");
+  bt.setAttribute("data-l",l);scpSet(bt,SCP_ICO_COPY,l);
+  bt.setAttribute("aria-label",l+" — কপি করুন");
+  bt.onclick=function(ev){ev.preventDefault();ev.stopPropagation();scpDo(getText(),bt);};
+  return bt;
+}
+function scpGroupTxt(b,from,to){
+  return b.people.slice(from,to).map(function(p){
+    return "হাদীস নং "+hqNumOf(p.name)+(p.ref?"\n"+p.ref:"")+"\n"+(p.text||"").trim();
+  }).join("\n\n");
+}
+function scpAdd(pg,withNum){
+  scpStyle();
+  var items=[];
+  Array.prototype.forEach.call(pg.children,function(c){
+    if(c.tagName==="UL"&&c.classList.contains("pairs")){Array.prototype.forEach.call(c.children,function(li){items.push(li);});}
+    else items.push(c);
+  });
+  var isNum=function(x){return !!withNum&&(x.tagName==="P"||x.tagName==="LI")&&/^\(\s*[\u09E6-\u09EF0-9]+\s*\)/.test(x.textContent.trim());};
+  var isB=function(x){return x.tagName==="H2"||x.tagName==="H3"||isNum(x);};
+  items.forEach(function(h,k){
+    if(!isB(h))return;
+    var parts=[h.textContent.trim()];
+    for(var m=k+1;m<items.length&&!isB(items[m]);m++){
+      var c=items[m].cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll("button,.scp-btn,.nav"),function(x){x.parentNode.removeChild(x);});
+      var t=c.textContent.trim();if(t)parts.push(t);
+    }
+    var txt=parts.join("\n\n");
+    h.appendChild(scpCopyBtn(function(){return txt;},"কপি"));
+  });
+}
+function scpDo(txt,bt){
+  var big=bt.classList.contains("big");
+  var done=function(ok){
+    bt.classList.remove("ok","err");void bt.offsetWidth;
+    bt.classList.add(ok?"ok":"err");
+    scpSet(bt,ok?SCP_ICO_OK:SCP_ICO_ERR,ok?(big?"কপি হয়েছে":"হয়েছে"):"হয়নি");
+    clearTimeout(bt._t);
+    bt._t=setTimeout(function(){bt.classList.remove("ok","err");scpSet(bt,SCP_ICO_COPY,bt.getAttribute("data-l")||"কপি");},1600);
+  };
+  var fallback=function(){
+    var ta=document.createElement("textarea");ta.value=txt;ta.setAttribute("readonly","");
+    ta.style.cssText="position:fixed;top:-1000px;opacity:0";
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);done(ok);
+  };
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(function(){done(true);},fallback);
+  } else fallback();
+}
 function personView(b,i){
   var p=b.people[i];app.innerHTML="";
   var isHq=(b.id==="book-2"||b.id==="book-2b");FSK=isHq?"fshq":"fs";FS=isHq?15:13;
@@ -2828,7 +2996,7 @@ function personView(b,i){
       if(b===BOOKS[0]&&AUTO_HL[i])smartMarkPhrases(pg,AUTO_HL[i]);
     }catch(e){}
   }
-  if(b===BOOKS[0]||b===BOOKS[3]){try{uhlWire(pg);}catch(e){}}if(b===BOOKS[0]&&i===0){try{talhaSecActions(pg);}catch(e){}}
+  if(b===BOOKS[0]||b===BOOKS[3]){try{uhlWire(pg);}catch(e){}}if(b===BOOKS[0]||b===BOOKS[3]){try{scpAdd(pg);}catch(e){}}if(b===BOOKS[0]&&i===0){try{talhaSecActions(pg);}catch(e){}}
   app.appendChild(pg);
   if(b.id==="book-5"&&p.name.indexOf("ফাদায়েলুল")>-1){var fz=el("div");secActions(fz,null,fazCfg());if(fz.firstChild)app.insertBefore(fz.firstChild,pg);}
   var nav=el("div","nav"),pre=(b===BOOKS[0]?"p-":(b.id||"x")+"-p-");
@@ -4153,7 +4321,7 @@ function route(hh,y){window.onscroll=null;NAV={p:null,n:null};document.body.clas
   else if((m=h.match(/^book-5-p-(\d+)-new$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1]&&BOOKS[4].people[m[1]-1].name==="কিতাবুন নিকাহ")kitabNewView(m[1]-1);
   else if((m=h.match(/^book-5-p-(\d+)-mcq$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1]&&BOOKS[4].people[m[1]-1].name==="কিতাবুন নিকাহ")kitabNewView(m[1]-1,true);
   else if((m=h.match(/^book-5-p-(\d+)-bm([emhx]?)$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1])kitabBmView(m[1]-1,m[2]);
-  else if((m=h.match(/^book-5-p-(\d+)-s$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1]&&(BOOKS[4].people[m[1]-1].name==="কিতাবুস সাওম"||BOOKS[4].people[m[1]-1].name==="কিতাবুল হাজ্জ"))kitabSView(m[1]-1);
+  else if((m=h.match(/^book-5-p-(\d+)-s$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1]&&KITAB_ONE.indexOf(BOOKS[4].people[m[1]-1].name)>-1)kitabSView(m[1]-1);
   else if((m=h.match(/^book-5-p-(\d+)-q$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1])kitabQView(m[1]-1);
   else if((m=h.match(/^book-5-p-(\d+)-n$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1])kitabNoteView(m[1]-1);
   else if((m=h.match(/^book-5-p-(\d+)$/))&&BOOKS[4]&&BOOKS[4].people[m[1]-1])kitabMenuView(m[1]-1);
